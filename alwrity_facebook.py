@@ -53,7 +53,7 @@ def generate_facebook_post(business_type, target_audience, post_goal, post_tone,
         return None
 
 def main():
-        st.markdown("""
+    st.markdown("""
         <style>
         ::-webkit-scrollbar-track {
         background: #e1ebf9;
@@ -89,7 +89,7 @@ def main():
             font-weight: bold;
             }
         </style>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     st.title("Alwrity - AI Facebook Post Generator")
     
     try:

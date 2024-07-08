@@ -26,9 +26,10 @@ def generate_facebook_post(business_type, target_audience, post_goal, post_tone,
     Returns:
         A string containing the LLM prompt.
     """
-    prompt = f"""I am a {business_type}.
+    prompt = f"""
+    My business type is {business_type}.
 
-    Please help me write a detailed Facebook post that will engage my target audience, {target_audience}.
+    Please help me write highly detailed Facebook post, at least 1000-2000 words, that will engage my target audience, {target_audience}.
 
     Here are some additional details to consider:
 
@@ -40,48 +41,74 @@ def generate_facebook_post(business_type, target_audience, post_goal, post_tone,
     **Example Post Structure:**
 
     1. **Attention-Grabbing Opening:** Start with a question or a bold statement to capture attention.
-    2. **Engaging Content:** Briefly describe the main message or offer, highlighting key benefits or features.
-    3. **Call-to-Action (CTA):** Encourage the audience to take a specific action (e.g., visit a link, comment, share).
-    4. **Multimedia:** Mention the types of multimedia elements to include (e.g., images, videos).
-    5. **Hashtags:** Include relevant hashtags to increase post visibility.
-
+    2. **Engaging Content:** Describe the main message or offer, highlighting key benefits or features.
+    3. **Call-to-Action (CTA):** Encourage & provide compelling to the audience to take a specific action (e.g., visit a link, comment, share).
+    4. **Hashtags:** Include relevant hashtags to increase post visibility.
     """
     try:
         response = generate_text_with_exception_handling(prompt)
         return response
     except Exception as err:
-        st.error(f"An error occurred while generating the prompt: {e}")
+        st.error(f"An error occurred while generating the prompt: {err}")
         return None
 
-
 def main():
-    st.title("Alwrity - Facebook Post Generator")
-    st.markdown("This app will help you create a Facebook post prompt for an LLM.")
-
+    st.title("Alwrity - AI Facebook Post Generator")
+    
     try:
-        # Collect user inputs with default values
-        business_type = st.text_input("**What is your business type?**", placeholder="fitness coach")
-        target_audience = st.text_input("**Describe your target audience:**", placeholder="fitness enthusiasts")
-        post_goal = st.selectbox("**What is the goal of your post?**", ["Promote a new product", "Share valuable content", "Increase engagement", "Other"], index=2)
-        post_tone = st.selectbox("**What tone do you want to use?**", ["Informative", "Humorous", "Inspirational", "Upbeat", "Casual"], index=3)
-        include = st.text_input("**What elements do you want to include?** (e.g., images, videos, links, hashtags, questions)", placeholder="short video with a sneak peek of the challenge")
-        avoid = st.text_input("**What elements do you want to avoid?** (e.g., long paragraphs, technical jargon)", placeholder="long paragraphs")
+        with st.expander("**PRO-TIP** - Read the instructions below.", expanded=True):
+            col1, col2 = st.columns(2)
 
-        if st.button("Write FaceBook Post"):
+            with col1:
+                business_type = st.text_input(
+                    "**🏢 What is your business type?**", 
+                    placeholder="e.g., fitness coach", 
+                    help="Enter the type of your business."
+                )
+
+                post_goal = st.selectbox(
+                    "**🎯 What is the goal of your post?**", 
+                    ["Promote a new product", "Share valuable content", "Increase engagement", "Other"], 
+                    index=2
+                )
+                
+            with col2:
+                target_audience = st.text_input(
+                    "**🎯 Describe your target audience:**", 
+                    placeholder="e.g., fitness enthusiasts", 
+                    help="Describe who you want to reach with this post."
+                )
+                
+                post_tone = st.selectbox(
+                    "**🗣️ What tone do you want to use?**", 
+                    ["Informative", "Humorous", "Inspirational", "Upbeat", "Casual"], 
+                    index=3
+                )
+
+            include = st.text_input(
+                "**📋 What elements do you want to include?**", 
+                placeholder="e.g., (Optional) short video with a sneak peek, Image", 
+                help="Specify elements to include like images, videos, links."
+            )
+            avoid = st.text_input(
+                "**🚫 What elements do you want to avoid?**", 
+                placeholder="e.g.,(Optional) Robotic Tone, long paragraphs, Incorrect information", 
+                help="Specify elements to avoid like long paragraphs or technical jargon."
+            )
+
+        if st.button("**✨Generate Your FB Post Now!**"):
             if not business_type or not target_audience:
                 st.error("🚫 Provide required inputs. Least, you can do..")
-            
-            generated_post = generate_facebook_post(business_type, target_audience, post_goal, post_tone, include, avoid)
-            if generated_post:
-                st.subheader(f'**🧕 Verify: Alwrity can make mistakes.**')
-                st.write("## Generated Facebook Post:")
-                st.write(generated_post)
-                st.write("\n\n\n\n\n")
             else:
-                st.error("Error: Failed to generate Facebook Post.")
+                generated_post = generate_facebook_post(business_type, target_audience, post_goal, post_tone, include, avoid)
+                if generated_post:
+                    st.write("**🧕 Verify: Alwrity can make mistakes. To err is Human & AI..**")
+                    st.markdown(generated_post)
+                    st.write("\n\n")
+                else:
+                    st.error("Error: Failed to generate Facebook Post.")
     except Exception as e:
         st.error(f"An error occurred: {e}")
-
 
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
@@ -101,10 +128,10 @@ def generate_text_with_exception_handling(prompt):
         genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
         generation_config = {
-            "temperature": 1,
+            "temperature": 0.7,
             "top_p": 0.95,
             "top_k": 0,
-            "max_output_tokens": 8192,
+            "max_output_tokens": 4096,
         }
 
         safety_settings = [
@@ -126,7 +153,7 @@ def generate_text_with_exception_handling(prompt):
             },
         ]
 
-        model = genai.GenerativeModel(model_name="gemini-1.5-flash-latest",
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash",
                                       generation_config=generation_config,
                                       safety_settings=safety_settings)
 
